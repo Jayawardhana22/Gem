@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gem-frontend-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gem-frontend
+  template:
+    metadata:
+      labels:
+        app: gem-frontend
+    spec:
+      containers:
+      - name: gem-frontend
+        image: your-dockerhub-username/gem-frontend:latest # Replace with your image
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gem-frontend-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: gem-frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
