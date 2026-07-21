@@ -96,7 +96,25 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await db.Database.MigrateAsync();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+    // Retry loop: wait for the database to become available before applying migrations
+    var maxAttempts = 30;
+    var delay = TimeSpan.FromSeconds(2);
+    for (var attempt = 1; attempt <= maxAttempts; attempt++)
+    {
+        try
+        {
+            await db.Database.MigrateAsync();
+            break;
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Database not ready for migrations (attempt {Attempt}/{Max}). Retrying in {Delay}s...", attempt, maxAttempts, delay.TotalSeconds);
+            if (attempt == maxAttempts) throw;
+            await Task.Delay(delay);
+        }
+    }
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
