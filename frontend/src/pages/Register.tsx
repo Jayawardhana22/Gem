@@ -37,8 +37,9 @@ export default function Register() {
           className="w-full bg-white/5 border border-ivory/20 px-4 py-3 placeholder:text-ivory/30 focus:outline-none focus:border-gold" />
         <input required placeholder="Country" value={country} onChange={(e) => setCountry(e.target.value)}
           className="w-full bg-white/5 border border-ivory/20 px-4 py-3 placeholder:text-ivory/30 focus:outline-none focus:border-gold" />
-        <input required type="password" placeholder="Password (min 8 characters)" value={password} onChange={(e) => setPassword(e.target.value)}
+        <input required type="password" minLength={12} placeholder="Password (min 12 characters)" value={password} onChange={(e) => setPassword(e.target.value)}
           className="w-full bg-white/5 border border-ivory/20 px-4 py-3 placeholder:text-ivory/30 focus:outline-none focus:border-gold" />
+        <p className="text-ivory/60 text-xs">Password must be at least 12 characters and include upper/lower case letters, numbers, and a symbol.</p>
         {error && <p className="text-ruby text-sm">{error}</p>}
         <button disabled={loading} className="facet-btn w-full bg-gold text-charcoal py-3 font-medium uppercase tracking-wide hover:bg-gold/90">
           {loading ? 'Creating account…' : 'Create Account'}
