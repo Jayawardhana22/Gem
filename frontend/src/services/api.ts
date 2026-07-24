@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://localhost:5001/api'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 export const api = axios.create({ baseURL: API_URL })
 
@@ -32,6 +32,7 @@ export interface GemDetail extends Omit<GemListItem, 'primaryImageUrl'> {
   treatment: string
   certificateNumber?: string
   certificateAuthority?: string
+  certificateFileUrl?: string | null
   categoryId: number
   imageUrls: string[]
 }

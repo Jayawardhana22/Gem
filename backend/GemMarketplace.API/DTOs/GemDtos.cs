@@ -12,7 +12,7 @@ public record GemDetailDto(
     int Id, string Code, string Name, string Slug, string Description,
     decimal Price, decimal WeightCarats, string Origin, string Shape, string Cut,
     string Treatment, string Color, string? CertificateNumber, string? CertificateAuthority,
-    GemStatus Status, bool IsFeatured, string CategoryName, int CategoryId,
+    string? CertificateFileUrl, GemStatus Status, bool IsFeatured, string CategoryName, int CategoryId,
     List<string> ImageUrls);
 
 public class GemUpsertDto
@@ -60,6 +60,9 @@ public class GemUpsertDto
     
     [StringLength(100)]
     public string? CertificateAuthority { get; set; }
+
+    [StringLength(500)]
+    public string? CertificateFileUrl { get; set; }
     
     [Range(0.01, 1000000)]
     public decimal Price { get; set; }

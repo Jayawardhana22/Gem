@@ -70,6 +70,7 @@ public class AdminController : ControllerBase
             Color = dto.Color,
             CertificateNumber = dto.CertificateNumber,
             CertificateAuthority = dto.CertificateAuthority,
+            CertificateFileUrl = dto.CertificateFileUrl,
             Price = dto.Price,
             Status = dto.Status,
             IsFeatured = dto.IsFeatured
@@ -97,6 +98,7 @@ public class AdminController : ControllerBase
         gem.Color = dto.Color;
         gem.CertificateNumber = dto.CertificateNumber;
         gem.CertificateAuthority = dto.CertificateAuthority;
+        gem.CertificateFileUrl = dto.CertificateFileUrl;
         gem.Price = dto.Price;
         gem.Status = dto.Status;
         gem.IsFeatured = dto.IsFeatured;
@@ -136,6 +138,20 @@ public class AdminController : ControllerBase
         await _db.SaveChangesAsync();
 
         return Ok(new { image.Id, image.Url, image.IsPrimary });
+    }
+
+    [HttpPost("gems/{id}/certificate")]
+    [RequestSizeLimit(20_000_000)]
+    public async Task<ActionResult> UploadCertificate(int id, [FromForm] IFormFile file)
+    {
+        var gem = await _db.Gems.FindAsync(id);
+        if (gem is null) return NotFound();
+
+        var url = await _fileStorage.SaveCertificateAsync(file, "certificates");
+        gem.CertificateFileUrl = url;
+        await _db.SaveChangesAsync();
+
+        return Ok(new { gem.Id, gem.CertificateFileUrl });
     }
 
     [HttpDelete("images/{imageId}")]

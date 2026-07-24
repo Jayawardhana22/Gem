@@ -16,9 +16,12 @@ public static class SeedData
 
         // Admin user
         var adminEmail = "admin@ceylongems.local";
-        if (await userManager.FindByEmailAsync(adminEmail) is null)
+        var adminPassword = "Admin@123456";
+        var admin = await userManager.FindByEmailAsync(adminEmail);
+
+        if (admin is null)
         {
-            var admin = new ApplicationUser
+            admin = new ApplicationUser
             {
                 UserName = adminEmail,
                 Email = adminEmail,
@@ -26,9 +29,32 @@ public static class SeedData
                 Country = "Sri Lanka",
                 EmailConfirmed = true
             };
-            var result = await userManager.CreateAsync(admin, "Admin@12345");
-            if (result.Succeeded)
-                await userManager.AddToRoleAsync(admin, "Admin");
+
+            var createResult = await userManager.CreateAsync(admin, adminPassword);
+            if (!createResult.Succeeded)
+                throw new InvalidOperationException($"Failed to seed admin user: {string.Join(", ", createResult.Errors.Select(e => e.Description))}");
+        }
+        else
+        {
+            admin.FullName = "Site Administrator";
+            admin.Country = "Sri Lanka";
+            admin.EmailConfirmed = true;
+            admin.UserName = adminEmail;
+            admin.Email = adminEmail;
+            await userManager.UpdateAsync(admin);
+
+            var removePasswordResult = await userManager.RemovePasswordAsync(admin);
+            if (!removePasswordResult.Succeeded)
+                throw new InvalidOperationException($"Failed to clear admin password: {string.Join(", ", removePasswordResult.Errors.Select(e => e.Description))}");
+
+            var addPasswordResult = await userManager.AddPasswordAsync(admin, adminPassword);
+            if (!addPasswordResult.Succeeded)
+                throw new InvalidOperationException($"Failed to reset admin password: {string.Join(", ", addPasswordResult.Errors.Select(e => e.Description))}");
+        }
+
+        if (!await userManager.IsInRoleAsync(admin, "Admin"))
+        {
+            await userManager.AddToRoleAsync(admin, "Admin");
         }
 
         // Categories

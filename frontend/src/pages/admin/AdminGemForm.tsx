@@ -6,8 +6,10 @@ import type { Category, GemDetail } from '../../services/api'
 const emptyForm = {
   code: '', name: '', description: '', categoryId: 0, weightCarats: 0, origin: 'Ceylon',
   shape: '', cut: '', treatment: '', color: '', certificateNumber: '', certificateAuthority: '',
-  price: 0, status: 'Available', isFeatured: false,
+  certificateFileUrl: '', price: 0, status: 'Available', isFeatured: false,
 }
+
+const statusToEnum = (status: string) => ({ Available: 0, Pending: 1, Sold: 2 }[status] ?? 0)
 
 export default function AdminGemForm() {
   const { id } = useParams()
@@ -17,6 +19,7 @@ export default function AdminGemForm() {
   const [categories, setCategories] = useState<Category[]>([])
   const [gemId, setGemId] = useState<number | null>(isEdit ? Number(id) : null)
   const [images, setImages] = useState<string[]>([])
+  const [certificateFileUrl, setCertificateFileUrl] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => { api.get<Category[]>('/categories').then((r) => setCategories(r.data)) }, [])
@@ -26,8 +29,9 @@ export default function AdminGemForm() {
     api.get(`/admin/gems`).then((r) => {
       const gem = r.data.items.find((g: any) => g.id === Number(id))
       if (gem) api.get<GemDetail>(`/gems/${gem.slug}`).then((res) => {
-        setForm({ ...res.data, certificateNumber: res.data.certificateNumber ?? '', certificateAuthority: res.data.certificateAuthority ?? '' })
+        setForm({ ...res.data, certificateNumber: res.data.certificateNumber ?? '', certificateAuthority: res.data.certificateAuthority ?? '', certificateFileUrl: res.data.certificateFileUrl ?? '' })
         setImages(res.data.imageUrls)
+        setCertificateFileUrl(res.data.certificateFileUrl ?? null)
       })
     })
   }, [id, isEdit])
@@ -36,11 +40,16 @@ export default function AdminGemForm() {
     e.preventDefault()
     setSaving(true)
     try {
+      const payload = {
+        ...form,
+        status: statusToEnum(form.status),
+      }
+
       if (isEdit) {
-        await api.put(`/admin/gems/${id}`, form)
+        await api.put(`/admin/gems/${id}`, payload)
         navigate('/admin/gems')
       } else {
-        const { data } = await api.post('/admin/gems', form)
+        const { data } = await api.post('/admin/gems', payload)
         setGemId(data.id)
         navigate(`/admin/gems/${data.id}`)
       }
@@ -56,6 +65,15 @@ export default function AdminGemForm() {
     formData.append('isPrimary', String(images.length === 0))
     const { data } = await api.post(`/admin/gems/${gemId}/images`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
     setImages([...images, data.url])
+  }
+
+  async function handleCertificateUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!gemId || !e.target.files?.[0]) return
+    const formData = new FormData()
+    formData.append('file', e.target.files[0])
+    const { data } = await api.post(`/admin/gems/${gemId}/certificate`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+    setCertificateFileUrl(data.certificateFileUrl)
+    setForm({ ...form, certificateFileUrl: data.certificateFileUrl })
   }
 
   return (
@@ -93,15 +111,29 @@ export default function AdminGemForm() {
       </form>
 
       {gemId && (
-        <div className="mt-10 max-w-3xl">
-          <h2 className="font-display text-xl mb-4">Photos</h2>
-          <div className="flex gap-4 flex-wrap mb-4">
-            {images.map((url, i) => (
-              <img key={i} src={url} className="w-24 h-24 object-cover facet-card border border-gold/15" />
-            ))}
+        <div className="mt-10 max-w-3xl space-y-8">
+          <div>
+            <h2 className="font-display text-xl mb-4">Photos</h2>
+            <div className="flex gap-4 flex-wrap mb-4">
+              {images.map((url, i) => (
+                <img key={i} src={url} className="w-24 h-24 object-cover facet-card border border-gold/15" />
+              ))}
+            </div>
+            <input type="file" accept="image/*" onChange={handleImageUpload} className="text-sm text-ivory/60" />
+            <p className="text-ivory/40 text-xs mt-2">Upload at least one photo. The first uploaded photo becomes the primary listing image.</p>
           </div>
-          <input type="file" accept="image/*" onChange={handleImageUpload} className="text-sm text-ivory/60" />
-          <p className="text-ivory/40 text-xs mt-2">Upload at least one photo. The first uploaded photo becomes the primary listing image.</p>
+
+          <div>
+            <h2 className="font-display text-xl mb-4">Certificate</h2>
+            {certificateFileUrl ? (
+              <a href={certificateFileUrl} target="_blank" rel="noreferrer" className="text-gold underline text-sm">Open uploaded certificate</a>
+            ) : (
+              <p className="text-ivory/40 text-sm">No certificate file uploaded yet.</p>
+            )}
+            <div className="mt-3">
+              <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={handleCertificateUpload} className="text-sm text-ivory/60" />
+            </div>
+          </div>
         </div>
       )}
     </div>

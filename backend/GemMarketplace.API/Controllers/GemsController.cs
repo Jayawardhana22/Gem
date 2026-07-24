@@ -70,7 +70,7 @@ public class GemsController : ControllerBase
         return Ok(new GemDetailDto(
             g.Id, g.Code, g.Name, g.Slug, g.Description, g.Price, g.WeightCarats, g.Origin,
             g.Shape, g.Cut, g.Treatment, g.Color, g.CertificateNumber, g.CertificateAuthority,
-            g.Status, g.IsFeatured, g.Category!.Name, g.CategoryId,
+            g.CertificateFileUrl, g.Status, g.IsFeatured, g.Category!.Name, g.CategoryId,
             g.Images.OrderBy(i => i.SortOrder).Select(i => i.Url).ToList()));
     }
 }

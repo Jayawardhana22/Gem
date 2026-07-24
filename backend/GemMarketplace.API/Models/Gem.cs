@@ -26,6 +26,7 @@ public class Gem
     public string Color { get; set; } = string.Empty;
     public string? CertificateNumber { get; set; }
     public string? CertificateAuthority { get; set; }
+    public string? CertificateFileUrl { get; set; }
 
     public decimal Price { get; set; }
     public GemStatus Status { get; set; } = GemStatus.Available;

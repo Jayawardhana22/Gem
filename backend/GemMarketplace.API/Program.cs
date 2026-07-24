@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using GemMarketplace.API.Data;
 using GemMarketplace.API.Models;
 using GemMarketplace.API.Services;
@@ -72,7 +73,11 @@ builder.Services.AddCors(options =>
 });
 
 // --- Controllers + Swagger ---
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
